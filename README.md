@@ -1,7 +1,7 @@
 # Kubernetes 
+[Udemy CKA 강의](https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests) 를 듣고 정리한 공간. 
 
-![](./img/2021-11-19-19-03-08.png)
-
+## Core Concept
 ### ETCD
 
 ### Kube-API Server
