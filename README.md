@@ -7,9 +7,6 @@
 ### ETCD
 분산된 reliable key-value store이다.
 
-```console
-$
-```
 **[설치 및 실행]**
 ```console
 $ curl -L https://github.com/etcd-io/etcd/releases/download/v3.3.11/etcdv3.3.11-linux-amd64.tar.gz -o etcd-v3.3.11-linux-amd64.tar.gz
@@ -125,6 +122,17 @@ kube-system kube-proxy-zm5qd 1/1 Running 0 16m
 ```
 ### PODs
 
+#### nginx 이미지를 pod를 생성
+```console
+$ kubectl run nginx --image nginx
+```
+
+#### 현재 실행중인 Pod 파악
+```console
+$ kubectl get nodes
+```
+
+
 #### YAML
 ```yaml
 apiVersion: v1
@@ -142,3 +150,137 @@ spec:
   # - name: busybox
   #   image: busybox
 ```
+
+### ReplicaSets
+#### Replication Controller
+replication controller는 정해진 pod를 유지하거나 로드 밸런싱을 위해 scale up햔다.
+```yaml
+apiVersion: v1
+kind: ReplicationContoller
+metadata:
+  name: myapp-rc
+  labels:
+    app: myapp
+    tier: front-end
+spec:
+  template:
+    metadata:
+      name: myapp-pod
+      labels:
+        app: myapp
+        tier: front-end
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx 
+  replicas: 3
+```
+#### ReplicaSets
+replication controller와 차이점은 selector가 포함된다.
+```yaml
+apiVersion: v1
+kind: ReplicaSet
+metadata:
+  name: myapp-replicaset
+...
+  replicas: 3
+  selector:
+    matchLabels:
+      type: front-end
+```
+
+#### Commands 
+replicaset을 생성, 삭제 및 업데이트
+
+```console
+$ kubectl create -f replicaset-definition.yml
+$ kubectl get replicaset # 1개의 replicaset가 생성되었고, 4개의 Pod가 필요함
+------------------------
+NAME              DESIRED   CURRENT   READY   AGE
+new-replica-set   4         4         0       9s
+
+$ kubectl delete replicaset myapp-replicaset
+$ kubectl replace -f replicaset-definition.yml
+```
+
+```
+controlplane ~ ➜  kubectl explain replicaset
+KIND:     ReplicaSet
+VERSION:  apps/v1
+
+DESCRIPTION:
+     ReplicaSet ensures that a specified number of pod replicas are running at
+     any given time.
+
+FIELDS:
+   apiVersion   <string>
+     APIVersion defines the versioned schema of this representation of an
+     object. Servers should convert recognized schemas to the latest internal
+     value, and may reject unrecognized values. More info:
+     https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+```
+#1. version 이 맞지않는다는 이슈
+```yaml
+apiVersion: v1 -> apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+```
+#2. The ReplicaSet "replicaset-2" is invalid: spec.template.metadata.labels: Invalid value: map[string]string{"tier":"nginx"}: `selector` does not match template `labels`
+```yaml
+apiVersion: v1 -> apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: nginx -> frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+```
+
+## Deployment
+- rolling updates: 인스턴스를 하나씩 돌면서 업그레이드(한번에 하면 사용에 영향이 있을 수 있음)
+- 변화 적용
+```yaml
+apiVersion: v1 -> apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+...
+```
+
+## Namespace
+```console
+$ kubectl get pods --nampspace=dev
+```
+
+```yaml
+apiVersion: v1 -> apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset-1
+  namespace=dev
+```
+## Services
