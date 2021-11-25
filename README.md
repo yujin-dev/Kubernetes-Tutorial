@@ -1,11 +1,21 @@
 # Kubernetes 
 [Udemy CKA 강의](https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests) 를 듣고 정리한 공간. 
 
+
+*reference*
+- https://nirsa.tistory.com
+- https://deveric.tistory.com/116
+
 ## Core Concept
-![](./img/2021-11-20-11-11-44.png)
+![](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbnNh5w%2FbtqB2wa5BW4%2FKnbI4zn8QsIK4jZ8rbyEF0%2Fimg.png)
+
+- Master : Node를 제어하고 전체 클러스터를 관리해주는 controller이며 관리 서버이다.
+- Node : 컨테이너가 배포될 물리 서버 또는 가상 머신( Worker Node )
+- Pod : 단일 Node에 배포된 하나 이상의 컨테이너 그룹으로 여러 개의 컨테이너를 묶어서 Pod단위로 관리할 수 있다. 
 
 ### ETCD
-분산된 reliable key-value store이다.
+- 클러스터의 모든 데이터를 저장하는 데이터베이스 역할로 분산형 key-value store이다.
+- 모든 데이터를 저장하는 용도로 데이터 백업이나 클러스터링 후 여러 master server에 분산 실행하여 안정성을 보장한다.
 
 **[설치 및 실행]**
 ```console
@@ -47,7 +57,8 @@ $ kubectl exec etcd-master –n kube-system etcdctl get / --prefix –keys-only
 ```
 
 ### Kube-API Server
-유일하게 ETCD와 직접 소통하여 사용자를 인증하고, 요청을 허가하여 데이터를 불러온다.
+- Pod, Service, Replication controller와 같은 API에 대한 검증과 구성을 수행하는 REST API
+- 유일하게 ETCD와 직접 소통하여 사용자를 인증하고, 요청을 허가하여 데이터를 불러온다.
 
 ```console
 $ kubectl get nodes
@@ -71,7 +82,8 @@ kube-system kube-apiserver-master 1/1 Running 0 15m
 ```
 
 ### Kube Controller Manager
-쿠버네티스에서 지속적으로 모니터링한다.
+- 쿠버네티스에 탑재된 핵심 제어 루프를 포함하는 데몬
+- 쿠버네티스에서 지속적으로 모니터링한다.
 **[설치]**
 ```console
 $ wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-controller-manager
@@ -87,7 +99,8 @@ kube-system kube-controller-manager-master 1/1 Running 0 15m
 ```
 
 ### Kube Scheduler
-pod를 지정하기 위해 가장 적절한 node를 선정한다.
+- 쿠버네티스에서 가용성, 성능 및 용량을 관리하는 스케줄러
+- pod를 지정하기 위해 가장 적절한 node를 선정한다.
 **[설치]**
 ```console
 $ wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-scheduler
@@ -96,7 +109,9 @@ $ wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/lin
 
 
 ### Kubelet
-worker node를 등록하거나 master Scheduler에 의해 POD를 생성하여 docker image를 빌드하거나 POD의 상태를 모니터링하여 Kube-API에 보고한다.
+- 각 노드에서 구동되는 주요 에이전트로 kubelet은 PodSpecs 집합을 가지며 컨테이너가 구동되고 있는지, 정상 작동하는지 보장한다.
+- worker node를 등록하거나
+- master Scheduler에 따라 POD를 생성하여 docker image를 빌드하거나 POD의 상태를 모니터링하여 Kube-API에 보고한다.
 
 Kubeadm에 의해 설치되지 않기에 worker node에 직접 설치해야 한다.
 **[설치]**
@@ -105,7 +120,8 @@ $ wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/lin
 ```
 
 ### Kube Proxy
-IP table rules을 이용하여 POD 네트워크를 연결해 클러스터 내에서 서로 통신할 수 있도록 한다.
+- TCP/UDP 스트림 포워딩이나 백엔드 집합에 걸쳐 라운드 로빈 TCP/UDP 포워딩을 할 수 있다.
+- IP table rules을 이용하여 POD 네트워크를 연결해 클러스터 내에서 서로 통신할 수 있도록 한다.
 **[설치]**
 ```console
 $ wget https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kube-proxy
@@ -120,7 +136,7 @@ NAMESPACE NAME READY STATUS RESTARTS AGE
 kube-system kube-proxy-lzt6f 1/1 Running 0 16m
 kube-system kube-proxy-zm5qd 1/1 Running 0 16m
 ```
-### PODs
+### POD
 
 #### nginx 이미지를 pod를 생성
 ```console
@@ -152,8 +168,11 @@ spec:
 ```
 
 ### ReplicaSets
+Replicaset은 실행되는 pod 갯수에 대한 가용성을 보장하고 지정한 pod 갯수만큼 항상 실행될 수 있도록 관리한다.
+ 
 #### Replication Controller
-replication controller는 정해진 pod를 유지하거나 로드 밸런싱을 위해 scale up햔다.
+- 항상 정해진 수의 replicat가 실행 중임을 보장한다.
+- replication controller는 정해진 pod를 유지하거나 로드 밸런싱을 위해 scale up햔다.
 ```yaml
 apiVersion: v1
 kind: ReplicationContoller
@@ -176,7 +195,9 @@ spec:
   replicas: 3
 ```
 #### ReplicaSets
-replication controller와 차이점은 selector가 포함된다.
+yaml 파일에서 replication controller와 차이점은 selector가 포함된다.
+Replicaset은 직접적으로 Pod와 연결되어 있지 않기에 관리할 Pod를 찾기 위해 selector를 사용한다.
+
 ```yaml
 apiVersion: v1
 kind: ReplicaSet
@@ -184,94 +205,74 @@ metadata:
   name: myapp-replicaset
 ...
   replicas: 3
-  selector:
+  selector: # 어떤 레이블의 pod를 선택하여 관리할지에 대한 설정
     matchLabels:
       type: front-end
 ```
 
-#### Commands 
-replicaset을 생성, 삭제 및 업데이트
+**[ Commands ]**
+- replicaset을 생성, 삭제 및 업데이트
+  ```console
+  $ kubectl create -f replicaset-definition.yml
+  $ kubectl get replicaset # 1개의 replicaset가 생성되었고, 4개의 Pod가 필요함
+  ------------------------
+  NAME              DESIRED   CURRENT   READY   AGE
+  new-replica-set   4         4         0       9s
 
-```console
-$ kubectl create -f replicaset-definition.yml
-$ kubectl get replicaset # 1개의 replicaset가 생성되었고, 4개의 Pod가 필요함
-------------------------
-NAME              DESIRED   CURRENT   READY   AGE
-new-replica-set   4         4         0       9s
+  $ kubectl delete replicaset myapp-replicaset
+  $ kubectl replace -f replicaset-definition.yml
+  ```
+- replicaset 정보 확인
+  ```
+  controlplane ~ ➜  kubectl explain replicaset
+  KIND:     ReplicaSet
+  VERSION:  apps/v1
 
-$ kubectl delete replicaset myapp-replicaset
-$ kubectl replace -f replicaset-definition.yml
-```
+  DESCRIPTION:
+      ReplicaSet ensures that a specified number of pod replicas are running at
+      any given time.
 
-```
-controlplane ~ ➜  kubectl explain replicaset
-KIND:     ReplicaSet
-VERSION:  apps/v1
+  FIELDS:
+    apiVersion   <string>
+      APIVersion defines the versioned schema of this representation of an
+      object. Servers should convert recognized schemas to the latest internal
+      value, and may reject unrecognized values. More info:
+      https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+  ```
+- 파드 갯수를 실시간으로 조정
+  ```console
+  $ kubectl scale replicaset test-replicaset --replicas=5
+  ```
 
-DESCRIPTION:
-     ReplicaSet ensures that a specified number of pod replicas are running at
-     any given time.
+### Deployment
+Replicaset의 상위 개념으로 볼 수 있다. Replicaset을 생성하는 deployment를 정의하거나 배포 작업을 롤링 업데이트(인스턴스를 하나씩 돌면서 업그레이드) 하는 기능이 있다.
 
-FIELDS:
-   apiVersion   <string>
-     APIVersion defines the versioned schema of this representation of an
-     object. Servers should convert recognized schemas to the latest internal
-     value, and may reject unrecognized values. More info:
-     https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-```
-#1. version 이 맞지않는다는 이슈
-```yaml
-apiVersion: v1 -> apps/v1
-kind: ReplicaSet
-metadata:
-  name: replicaset-1
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      tier: frontend
-  template:
-    metadata:
-      labels:
-        tier: frontend
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-```
-#2. The ReplicaSet "replicaset-2" is invalid: spec.template.metadata.labels: Invalid value: map[string]string{"tier":"nginx"}: `selector` does not match template `labels`
-```yaml
-apiVersion: v1 -> apps/v1
-kind: ReplicaSet
-metadata:
-  name: replicaset-1
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      tier: frontend
-  template:
-    metadata:
-      labels:
-        tier: nginx -> frontend
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-```
 
-## Deployment
-- rolling updates: 인스턴스를 하나씩 돌면서 업그레이드(한번에 하면 사용에 영향이 있을 수 있음)
-- 변화 적용
 ```yaml
 apiVersion: v1 -> apps/v1
 kind: Deployment
 metadata:
   name: myapp-deployment
-...
+spec:
+  replicas: 2 
+  selector: # 어떤 레이블의 pod를 선택하여 관리할지에 대한 설정
+    matchLabels:
+      tier: frontend
+  template: # 어떤 파드를 실행할지에 대한 정보
+    metadata:
+      labels:
+        tier: nginx -> frontend
+    spec: # 컨데이터에 대한 설정
+      containers:
+      - name: nginx
+        image: nginx
+```
+#### Deployment Update
+```console
+$ kubectl set image deployment/{deployment name} {container name}={image}:{version}
 ```
 
-## Namespace
+### Namespace
 ```console
 $ kubectl get pods --nampspace=dev
 ```
@@ -283,4 +284,4 @@ metadata:
   name: replicaset-1
   namespace=dev
 ```
-## Services
+
