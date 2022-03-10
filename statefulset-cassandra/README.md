@@ -31,7 +31,7 @@ cassandra-2   1/1       Running   0          8m
 `cassandra-0` Pod내부의 링의 상태를 보여주는 `nodetool`
 
 ```console
-kubectl exec -it cassandra-0 -- nodetool status
+$ kubectl exec -it cassandra-0 -- nodetool status
 Datacenter: DC1-K8Demo
 ======================
 Status=Up/Down
