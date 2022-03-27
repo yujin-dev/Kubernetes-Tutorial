@@ -1,10 +1,9 @@
-# Kubernetes 
-[Udemy CKA 강의](https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests) 를 듣고 정리한 공간. 
-
+# Kubernetes Overview
 
 *reference*
 - https://nirsa.tistory.com
 - https://deveric.tistory.com/116
+- [Udemy CKA 강의](https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests)
 
 ## Overview
 Kubernetes는 Container+Orchestration의 집합이다.
