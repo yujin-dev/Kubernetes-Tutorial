@@ -64,3 +64,15 @@ docker에서 실제로 실행되는 프로세스는 `CMD`로 명시해준다. ex
      - configMapRef:
         name: app-config
     ```
+
+## Security
+
+authentication은 password / token / certificates / identity services를 사용하여 이루어진다.
+
+### TLS certificates
+
+- symmetric encryption은 하나의 동일한 key로 데이터를 encrypt하고 decrypt한다. 데이터를 전송하는 과정에 key도 노출되기에 보안에 약하다.
+- **PKI**(Publice Key Infrastructure) : asymmetric encryption은 public key , private key의 한 쌍의 키를 필요로 한다. public key를 자물쇠라고 하고 private key를 열쇠라고 하면 public key는 누구에게나 노출될 수 있지만 private key는 소유자만 가지고 있어야 한다.  
+server로부터 public key를 받으면 개인은 데이터를 encrypt, decrypt하기 위해 symmetric key를 생성한다. 이 키는 public key를 통해 encryprted key를 변한시켜 private key를 생성한다. encrpyted symmetric key는 서버에게 전송되어 서버의 private key를 통해 decrypt되어 symmetric key를 읽는다. 이 키를 통해 데이터를 읽을 수 있다.
+    - client와 server를 verify하기 위해 Symantec같은 CA에서 발급한 TLS certificates를 사용하게 된다.
+    - publice key는 보통 *.pem, *.cert같은 형식이고, private key는 *-key, *key.pem 같은 확장자를 가진다.
